@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style-perguntas.css">
+    <title>Resultado</title>
+    <style>
+        body { justify-content: flex-start; padding: 32px 16px 48px; }
+
+        .resultado-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 32px;
+            width: 100%;
+            max-width: 720px;
+        }
+
+        .princesa-destaque {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 28px;
+            color: #c94f7c;
+            text-align: center;
+            background: #fff0fa;
+            border: 4px solid #ff66c4;
+            border-radius: 24px;
+            padding: 20px 32px;
+            box-shadow: 0 4px 16px rgba(255,102,196,0.2);
+        }
+
+        .princesa-destaque span {
+            display: block;
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        /* ── Gráfico de barras ── */
+        .grafico {
+            width: 100%;
+            background: #fff0fa;
+            border-radius: 20px;
+            padding: 24px 28px;
+            box-shadow: 0 4px 16px rgba(255,102,196,0.15);
+        }
+
+        .grafico h3 {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: #c94f7c;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .barra-linha {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .barra-label {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 16px;
+            color: #c94f7c;
+            width: 130px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .barra-track {
+            flex: 1;
+            background: #ffd6f0;
+            border-radius: 30px;
+            height: 28px;
+            overflow: hidden;
+        }
+
+        .barra-fill {
+            height: 100%;
+            border-radius: 30px;
+            background: linear-gradient(90deg, #ff66c4, #e7879f);
+            transition: width 0.8s ease;
+            min-width: 4px;
+        }
+
+        .barra-fill.destaque {
+            background: linear-gradient(90deg, #d4380d, #ff7c50);
+        }
+
+        .barra-pts {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 15px;
+            color: #c94f7c;
+            width: 32px;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .btn-jogar-dnv {
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            font-size: 20px;
+            background-color: #ff66c4;
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            padding: 14px 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(255,102,196,0.4);
+            transition: transform 0.15s, background 0.2s;
+        }
+
+        .btn-jogar-dnv:hover {
+            background-color: #e050b0;
+            transform: scale(1.05);
+        }
+        /* ── Histórico (banco de dados) ── */
+        .historico {
+            width: 100%;
+            background: #fff0fa;
+            border-radius: 20px;
+            padding: 24px 20px;
+            box-shadow: 0 4px 16px rgba(255,102,196,0.15);
+            font-family: Georgia, 'Times New Roman', Times, serif;
+            color: #c94f7c;
+        }
+        .historico h3 { font-size: 18px; text-align: center; margin-bottom: 16px; }
+        .tabela-scroll { overflow-x: auto; }
+        .historico table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .historico th { background: #ff66c4; color: #fff; padding: 8px 6px; white-space: nowrap; }
+        .historico td { padding: 8px 6px; text-align: center; border-bottom: 1px solid #ffd6f0; }
+        .historico td.nome { text-align: left; }
+        .historico tr.atual td { background: #ffe3f5; font-weight: bold; }
+        .historico .vazio { text-align: center; padding: 12px; }
+
+        .btn-mini {
+            font-family: inherit; font-size: 13px; border: none; border-radius: 20px;
+            padding: 5px 12px; cursor: pointer; color: #fff; margin: 0 2px;
+        }
+        .btn-editar  { background: #e7879f; }
+        .btn-excluir { background: #d4380d; }
+        .btn-mini:hover { opacity: 0.85; }
+
+        /* ── Modal de edição ── */
+        .modal-fundo {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            align-items: center; justify-content: center; z-index: 10; padding: 16px;
+        }
+        .modal-fundo.aberto { display: flex; }
+        .modal {
+            background: #fff0fa; border: 4px solid #ff66c4; border-radius: 20px;
+            padding: 24px; width: 100%; max-width: 380px; max-height: 90vh; overflow-y: auto;
+            font-family: Georgia, 'Times New Roman', Times, serif; color: #c94f7c;
+        }
+        .modal h3 { text-align: center; margin-bottom: 16px; }
+        .modal label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; }
+        .modal input, .modal select {
+            font-family: inherit; font-size: 15px; padding: 6px 10px;
+            border: 2px solid #ff66c4; border-radius: 12px; width: 150px;
+        }
+        .modal .acoes { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
+        .btn-salvar   { background: #ff66c4; padding: 8px 22px; font-size: 16px; }
+        .btn-cancelar { background: #aaa;    padding: 8px 22px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <h2 class="titulo-pergunta">🌟 Resultado do Quiz das Princesas! 🌟</h2>
+
+    <div class="resultado-wrapper">
+
+        <div class="princesa-destaque" id="destaque">
+            <span id="destaque-emoji">✨</span>
+            <span id="destaque-texto">Calculando...</span>
+        </div>
+
+        <div class="grafico">
+            <h3>📊 Pontuação por princesa</h3>
+            <div id="grafico-barras"></div>
+        </div>
+
+        <p id="status-salvo" style="font-family: Georgia, serif; color:#c94f7c;"></p>
+
+        <div class="historico">
+            <h3>🗂️ Resultados salvos no banco de dados</h3>
+            <div class="tabela-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Jogador</th><th>Princesa</th>
+                            <th>❄️</th><th>🌊</th><th>🌟</th><th>🏹</th><th>☀️</th><th>🐠</th>
+                            <th>Data</th><th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historico-corpo"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <button class="btn-jogar-dnv" onclick="jogarDenovo()">🔄 Jogar de novo</button>
+    </div>
+
+    <div class="modal-fundo" id="modal-fundo">
+        <div class="modal">
+            <h3>✏️ Editar resultado <span id="edit-id"></span></h3>
+            <label>Jogador <input id="edit-nome" type="text" maxlength="100"></label>
+            <label>Princesa <select id="edit-princesa"></select></label>
+            <div id="edit-pontos"></div>
+            <div class="acoes">
+                <button class="btn-mini btn-salvar" onclick="salvarEdicao()">Salvar</button>
+                <button class="btn-mini btn-cancelar" onclick="fecharModal()">Cancelar</button>
+            </div>
+            <p id="edit-erro" style="color:#d4380d; text-align:center; margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <script>
+        const INFO = {
+            elsa:     { nome: 'Elsa',     emoji: '❄️' },
+            moana:    { nome: 'Moana',    emoji: '🌊' },
+            tiana:    { nome: 'Tiana',    emoji: '🌟' },
+            merida:   { nome: 'Mérida',   emoji: '🏹' },
+            rapunzel: { nome: 'Rapunzel', emoji: '☀️' },
+            ariel:    { nome: 'Ariel',    emoji: '🐠' },
+        };
+
+        function getPontos() {
+            try { return JSON.parse(sessionStorage.getItem('quizPontos')) || {}; }
+            catch { return {}; }
+        }
+
+        function render() {
+            const pontos = getPontos();
+
+            // Garante que todas as princesas aparecem
+            for (const k of Object.keys(INFO)) {
+                if (!pontos[k]) pontos[k] = 0;
+            }
+
+            // Encontra a vencedora
+            const vencedora = Object.entries(pontos).sort((a, b) => b[1] - a[1])[0][0];
+            const maxPts = Math.max(...Object.values(pontos), 1);
+
+            // Destaque
+            document.getElementById('destaque-emoji').textContent = INFO[vencedora].emoji;
+            document.getElementById('destaque-texto').textContent =
+                `Você seria ${INFO[vencedora].nome}!`;
+
+            // Gráfico
+            const container = document.getElementById('grafico-barras');
+            container.innerHTML = '';
+
+            // Ordena do maior para o menor
+            const ordem = Object.entries(pontos).sort((a, b) => b[1] - a[1]);
+
+            for (const [key, pts] of ordem) {
+                const pct = (pts / maxPts) * 100;
+                const eh_vencedora = key === vencedora;
+                const info = INFO[key] || { nome: key, emoji: '👑' };
+
+                const linha = document.createElement('div');
+                linha.className = 'barra-linha';
+                linha.innerHTML = `
+                    <div class="barra-label">${info.emoji} ${info.nome}</div>
+                    <div class="barra-track">
+                        <div class="barra-fill ${eh_vencedora ? 'destaque' : ''}"
+                             style="width: ${pct}%"></div>
+                    </div>
+                    <div class="barra-pts">${pts}</div>
+                `;
+                container.appendChild(linha);
+            }
+
+            salvarResultado(pontos, vencedora).finally(carregarHistorico);
+
+            // Anima as barras após inserir no DOM
+            requestAnimationFrame(() => {
+                document.querySelectorAll('.barra-fill').forEach(b => {
+                    const w = b.style.width;
+                    b.style.width = '0%';
+                    requestAnimationFrame(() => { b.style.width = w; });
+                });
+            });
+        }
+
+        const API_URL = 'http://localhost:3000/resultado';
+
+        // Envia o resultado para o banco de dados via HTTP POST
+        async function salvarResultado(pontos, vencedora) {
+            const status = document.getElementById('status-salvo');
+
+            // Evita salvar duas vezes se a página for recarregada
+            if (sessionStorage.getItem('quizSalvo')) {
+                status.textContent = '✅ Resultado já salvo no banco de dados.';
+                return;
+            }
+
+            status.textContent = '⏳ Salvando resultado...';
+            try {
+                const resposta = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome: sessionStorage.getItem('quizNome') || '',
+                        princesa: vencedora,
+                        pontos: pontos
+                    })
+                });
+                const dados = await resposta.json();
+
+                if (!resposta.ok) throw new Error(dados.erro || 'Erro desconhecido');
+
+                sessionStorage.setItem('quizSalvo', '1');
+                status.textContent = '✅ Resultado salvo no banco de dados! (id ' + dados.id + ')';
+            } catch (erro) {
+                status.textContent = '❌ Não foi possível salvar o resultado: ' + erro.message;
+            }
+        }
+
+        // ───────── Histórico: listar / editar / excluir ─────────
+        const ORDEM = Object.keys(INFO);   // elsa, moana, tiana, merida, rapunzel, ariel
+        let historico = [];
+        let editandoId = null;
+
+        function esc(texto) {
+            const d = document.createElement('div');
+            d.textContent = texto;
+            return d.innerHTML;
+        }
+
+        async function carregarHistorico() {
+            const corpo = document.getElementById('historico-corpo');
+            try {
+                const resposta = await fetch(API_URL);
+                const dados = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.erro || 'Erro desconhecido');
+                historico = dados;
+                renderHistorico();
+            } catch (erro) {
+                corpo.innerHTML = `<tr><td colspan="11" class="vazio">❌ Não foi possível carregar: ${esc(erro.message)}</td></tr>`;
+            }
+        }
+
+        function renderHistorico() {
+            const corpo = document.getElementById('historico-corpo');
+            if (!historico.length) {
+                corpo.innerHTML = '<tr><td colspan="11" class="vazio">Nenhum resultado salvo ainda.</td></tr>';
+                return;
+            }
+            corpo.innerHTML = historico.map(r => {
+                const info = INFO[r.princesa] || { nome: r.princesa, emoji: '👑' };
+                const data = new Date(r.data_hora).toLocaleString('pt-BR');
+                const pts = ORDEM.map(k => `<td>${r['pts_' + k]}</td>`).join('');
+                return `<tr>
+                    <td>${r.id}</td>
+                    <td class="nome">${esc(r.nome_jogador)}</td>
+                    <td>${info.emoji} ${info.nome}</td>
+                    ${pts}
+                    <td>${data}</td>
+                    <td>
+                        <button class="btn-mini btn-editar" onclick="abrirModal(${r.id})">Editar</button>
+                        <button class="btn-mini btn-excluir" onclick="excluirResultado(${r.id})">Excluir</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ---- DELETE ----
+        async function excluirResultado(id) {
+            if (!confirm(`Excluir o resultado #${id}? Essa ação não pode ser desfeita.`)) return;
+            try {
+                const resposta = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                const dados = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.erro || 'Erro desconhecido');
+                await carregarHistorico();
+            } catch (erro) {
+                alert('❌ Não foi possível excluir: ' + erro.message);
+            }
+        }
+
+        // ---- UPDATE ----
+        function abrirModal(id) {
+            const r = historico.find(x => x.id === id);
+            if (!r) return;
+            editandoId = id;
+            document.getElementById('edit-id').textContent = '#' + id;
+            document.getElementById('edit-nome').value = r.nome_jogador;
+            document.getElementById('edit-erro').textContent = '';
+
+            const sel = document.getElementById('edit-princesa');
+            sel.innerHTML = ORDEM.map(k =>
+                `<option value="${k}">${INFO[k].emoji} ${INFO[k].nome}</option>`).join('');
+            sel.value = r.princesa;
+
+            document.getElementById('edit-pontos').innerHTML = ORDEM.map(k =>
+                `<label>${INFO[k].emoji} ${INFO[k].nome}
+                    <input type="number" min="0" id="edit-pts-${k}" value="${r['pts_' + k]}"
+                           oninput="sugerirVencedora()"></label>`).join('');
+
+            document.getElementById('modal-fundo').classList.add('aberto');
+        }
+
+        // Ao mexer nos pontos, sugere como vencedora a princesa com mais pontos (ainda dá para trocar)
+        function sugerirVencedora() {
+            let melhor = ORDEM[0], max = -1;
+            for (const k of ORDEM) {
+                const v = parseInt(document.getElementById('edit-pts-' + k).value) || 0;
+                if (v > max) { max = v; melhor = k; }
+            }
+            document.getElementById('edit-princesa').value = melhor;
+        }
+
+        function fecharModal() {
+            document.getElementById('modal-fundo').classList.remove('aberto');
+            editandoId = null;
+        }
+
+        async function salvarEdicao() {
+            const erroEl = document.getElementById('edit-erro');
+            const pontos = {};
+            for (const k of ORDEM) {
+                const v = parseInt(document.getElementById('edit-pts-' + k).value);
+                pontos[k] = Number.isNaN(v) || v < 0 ? 0 : v;
+            }
+            try {
+                const resposta = await fetch(`${API_URL}/${editandoId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        nome: document.getElementById('edit-nome').value,
+                        princesa: document.getElementById('edit-princesa').value,
+                        pontos: pontos
+                    })
+                });
+                const dados = await resposta.json();
+                if (!resposta.ok) throw new Error(dados.erro || 'Erro desconhecido');
+                fecharModal();
+                await carregarHistorico();
+            } catch (erro) {
+                erroEl.textContent = '❌ ' + erro.message;
+            }
+        }
+
+        function jogarDenovo() {
+            sessionStorage.removeItem('quizPontos');
+            sessionStorage.removeItem('quizSalvo');
+            location.href = '../index.html';
+        }
+
+        render();
+    </script>
+</body>
+</html>
